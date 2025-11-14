@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // ✅ Token Leka pothey next filter ki velipotham
+        // if token is not present sent to next filter
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -61,9 +61,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // ✅ Manually Auth set chestunnam
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+                // ✅ Manually Auth setting auth
+                SecurityContextHolder.getContext().setAuthentication(authToken);  //we are saying this request came from the valid user
+            }																		//and passing the userdetails to spring security.
         }
 
         // ✅ Continue filter chain

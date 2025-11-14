@@ -2,7 +2,8 @@ package com.foodapp.foodapp_backend.security;
 
 import java.util.Collection;
 import java.util.Collections;
-
+import java.util.stream.Collectors;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -17,8 +18,9 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // You can return roles here later
-        return Collections.emptyList();
+    	return user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .collect(Collectors.toList());
     }
 
     @Override
