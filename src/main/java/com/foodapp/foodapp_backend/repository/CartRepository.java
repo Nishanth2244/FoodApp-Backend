@@ -11,7 +11,6 @@ import com.foodapp.foodapp_backend.entity.User;
 @Repository
 public interface CartRepository extends JpaRepository<Cart, Long> {
 	
-    Optional<Cart> findByUser(User user);
-
+	Optional<Cart> findByUserAndActive(User user, boolean active);
 
 }

@@ -38,7 +38,7 @@ public class CartService {
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User not Found with Email: "+email));
 		
-		Cart cart = cartRepository.findByUser(user)
+		Cart cart = cartRepository.findByUserAndActive(user, true)
 				.orElseGet(() -> {
 					Cart newCart = new Cart();
 					newCart.setUser(user);
@@ -80,10 +80,9 @@ public class CartService {
 	public Cart myCartitems(String email) {
 		
 		User user = userRepository.findByEmail(email)
-				.orElseThrow(() -> new RuntimeException("Employee Not Found with {}"+email));
+				.orElseThrow(() -> new RuntimeException("Employee Not Found with: "+email));
 		
-		
-		Cart cart = cartRepository.findByUser(user)
+		Cart cart = cartRepository.findByUserAndActive(user, true)
 				.orElseGet(() ->{
 					Cart newCart = new Cart();
 					newCart.setUser(user);
@@ -101,11 +100,16 @@ public class CartService {
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User Not Found with Email"+email));
 		
-		Cart cart = cartRepository.findByUser(user)
+		Cart cart = cartRepository.findByUserAndActive(user, true)
 				.orElseThrow(() -> new RuntimeException("Cart Not Found to User "+user));
 		
 		CartItem cartItem = cartItemRepository.findById(cartItemId)
 				.orElseThrow(() -> new RuntimeException("Cart Item is not Found with id "+ cartItemId));
+		
+		
+		if (!cart.getItems().contains(cartItem)) {
+		    throw new RuntimeException("Unauthorized access to cartItem");
+		}
 		
 		long currentQuantity = cartItem.getQuantity();
 		
@@ -115,6 +119,7 @@ public class CartService {
 		}
 		else {
 			cart.getItems().remove(cartItem);
+			cartItemRepository.delete(cartItem);
 		}
 		
 		double total = cart.getItems().stream()
