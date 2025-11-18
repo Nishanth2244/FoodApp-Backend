@@ -8,12 +8,15 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.foodapp.foodapp_backend.dto.OrderUpdateStatusDTO;
 import com.foodapp.foodapp_backend.entity.Cart;
 import com.foodapp.foodapp_backend.entity.CartItem;
 import com.foodapp.foodapp_backend.entity.Order;
 import com.foodapp.foodapp_backend.entity.OrderItem;
+import com.foodapp.foodapp_backend.entity.User;
 import com.foodapp.foodapp_backend.repository.CartRepository;
 import com.foodapp.foodapp_backend.repository.OrderRepository;
+import com.foodapp.foodapp_backend.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,6 +32,9 @@ public class OrderService {
 	
 	@Autowired
 	private CartRepository cartRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
 	
 	public Order placeOrder(String email) {
 		
@@ -57,8 +63,6 @@ public class OrderService {
 //		setting orderItems(cartItems) to order (orderItems)
 		order.setItems(orderItems);
 
-//		Set order status SUCESS
-		order.setOrderStatus("SUCCESS");
 		
 //		save the Order to the Order table
 		Order savedOrder = orderRepository.save(order);
@@ -78,6 +82,46 @@ public class OrderService {
 		
 		log.info("Order History fetching for User {}",email);
 		return orderRepository.findByUserEmail(email);
+	}
+
+	
+	public Order updateStatus(Long orderId, OrderUpdateStatusDTO orderUpdateStatusDTO) {
+		
+//		Finding the Order with orderId
+		Order oldOrder = orderRepository.findById(orderId)
+				.orElseThrow(() -> new RuntimeException("Order not found with Id: "+orderId));
+		
+		log.info("Updating Order staus from {} to {}",oldOrder.getOrderStatus(),orderUpdateStatusDTO.getOrderStatus());
+//		Setting the new Status
+		oldOrder.setOrderStatus(orderUpdateStatusDTO.getOrderStatus());
+		
+		return orderRepository.save(oldOrder);
+		
+	}
+
+	public Order cancelOrder(Long orderId, String email) {
+		
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User Not found"));
+		
+		Order order = orderRepository.findById(orderId)
+				.orElseThrow(() -> new RuntimeException("Order not found with Id:"+orderId));
+		
+		if(!order.getUser().getId().equals(user.getId())) {
+			throw new RuntimeException("You cannot cancel someone else's order!");
+		}
+		
+		if(!order.getOrderStatus().equals("PENDING") && !order.getOrderDate().equals("PREPARING") && !order.getOrderDate().equals("OUT FOR DELIVERY")) {
+			log.warn("User {} This order cannot be cancelled as it is already: {}", email, order.getOrderStatus());
+			throw new RuntimeException("This order cannot be cancelled as it is already: " + order.getOrderStatus());
+		}
+		
+		
+		order.setOrderStatus("CANCELLED"); 
+		
+		return orderRepository.save(order);
+		
+		
 	}
 	
 }

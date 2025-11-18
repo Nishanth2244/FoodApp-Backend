@@ -1,5 +1,6 @@
 package com.foodapp.foodapp_backend.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,9 @@ import com.foodapp.foodapp_backend.repository.MenuItemRepository;
 import com.foodapp.foodapp_backend.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class CartService {
 	
@@ -31,20 +34,45 @@ public class CartService {
 	@Autowired
 	private CartItemRepository cartItemRepository;
 	
+	
+	
+private Cart getOrCreateActiveCart(User user) {
+		
+		List<Cart> activeCarts = cartRepository.findByUserAndActive(user, true);
+        Cart cart;
+
+        if (activeCarts.isEmpty()) {
+        	log.info("No active cart found for user {}. Creating a new one.", user.getEmail());
+            cart = new Cart();
+            cart.setUser(user);
+            cart.setTotalAmount(0.0);
+            return cartRepository.save(cart); // Save and return the new cart
+            
+        } else {
+            cart = activeCarts.get(0); 
+
+            if (activeCarts.size() > 1) {
+                log.warn("Found {} active carts for user {}. Deactivating duplicates.", activeCarts.size(), user.getEmail());
+                for (int i = 1; i < activeCarts.size(); i++) {
+                    Cart duplicateCart = activeCarts.get(i);
+                    duplicateCart.setActive(false);
+                    cartRepository.save(duplicateCart);
+                }
+            }
+            return cart; 
+        }
+	}
+	
 	@Transactional 
 	public Cart addItemsToCart(String email, Long menuItemId, int quantity) {
+		
+		log.info("Request came to add itam to cart");
 		
 		//finding the user from UserRepo
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User not Found with Email: "+email));
 		
-		Cart cart = cartRepository.findByUserAndActive(user, true)
-				.orElseGet(() -> {
-					Cart newCart = new Cart();
-					newCart.setUser(user);
-					newCart.setTotalAmount(0.0); 
-					return cartRepository.save(newCart);
-				});
+		Cart cart = getOrCreateActiveCart(user);
 		
 		MenuItem menuItem = menuItemRepository.findById(menuItemId)
 				.orElseThrow(() -> new RuntimeException("Menu item is not found"));
@@ -82,13 +110,7 @@ public class CartService {
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("Employee Not Found with: "+email));
 		
-		Cart cart = cartRepository.findByUserAndActive(user, true)
-				.orElseGet(() ->{
-					Cart newCart = new Cart();
-					newCart.setUser(user);
-					newCart.setTotalAmount(0.0);
-					return cartRepository.save(newCart);
-				});
+		Cart cart = getOrCreateActiveCart(user);
 		
 		return cart;
 	}
@@ -100,8 +122,7 @@ public class CartService {
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User Not Found with Email"+email));
 		
-		Cart cart = cartRepository.findByUserAndActive(user, true)
-				.orElseThrow(() -> new RuntimeException("Cart Not Found to User "+user));
+		Cart cart = getOrCreateActiveCart(user);
 		
 		CartItem cartItem = cartItemRepository.findById(cartItemId)
 				.orElseThrow(() -> new RuntimeException("Cart Item is not Found with id "+ cartItemId));

@@ -53,6 +53,7 @@ public class Order {
 	
 	@PrePersist
 	protected void onCreate() {
+		this.orderStatus = "PENDING";
 	    this.orderDate = LocalDateTime.now();
 	}
 }
