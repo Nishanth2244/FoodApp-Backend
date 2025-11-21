@@ -4,6 +4,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
@@ -14,10 +15,14 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
+	
+	@Value("${jwt.expiration}")
+	private long jwtExpiration;
+	
+	@Value("${jwt.secret}")
+	private String SECRET_KEY;
 
-    // Secret key (256-bit)
-    private static final String SECRET_KEY = "6A576E5A7234753778214125442A472D4B6150645367566B5970337336763979";
-
+	
     // ✅ Extract username from Token
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
@@ -34,7 +39,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration)) // 10 hours
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

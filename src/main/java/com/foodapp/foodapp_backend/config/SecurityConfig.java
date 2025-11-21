@@ -20,7 +20,7 @@ import com.foodapp.foodapp_backend.service.JwtAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.List;
+import java.util.*;
 
 @EnableMethodSecurity
 @Configuration
@@ -36,17 +36,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        http                
+        		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 .csrf(csrf -> csrf.disable()) 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**",
                         		"/items/allItems",
-                        		"items/ByCategory/**",
+                        		"/items/ByCategory/**", 
                         		"/categories/all",
+                        		"/images/**",           
                         		"/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/items/search",
+                                "/offer/getActiveOffers"
                         		).permitAll() 
                         .anyRequest().authenticated()            
                 )
@@ -58,20 +62,27 @@ public class SecurityConfig {
         return http.build();
     }
     
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(List.of("*"));   
+//        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));      
+//        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));      
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();    
+//        source.registerCorsConfiguration("/**", configuration);  
+//        return source;
+//    }
+    
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        configuration.setAllowedOrigins(List.of("*")); 
-        
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); 
-        
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
-        
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:8081")); // Don't use "*"
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        
-        source.registerCorsConfiguration("/**", configuration); 
-        
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
     

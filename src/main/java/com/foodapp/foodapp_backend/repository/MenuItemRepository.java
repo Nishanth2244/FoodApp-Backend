@@ -11,5 +11,9 @@ import com.foodapp.foodapp_backend.entity.MenuItem;
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
 	List<MenuItem> findByMenuCategoryId(long categoryId);
+	
+//	List<MenuItem> findByName(String name);
+	
+	List<MenuItem> findByNameContainingIgnoreCase(String name);
 
 }

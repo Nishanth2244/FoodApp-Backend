@@ -29,4 +29,7 @@ public class User {
     @Column(name = "role") 
     @Enumerated(EnumType.STRING) 
     private Set<Role> roles = new HashSet<>();
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Address> addresses = new HashSet<>();
 }

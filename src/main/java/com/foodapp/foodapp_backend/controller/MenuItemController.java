@@ -1,22 +1,30 @@
 package com.foodapp.foodapp_backend.controller;
-
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
+import org.antlr.v4.runtime.misc.TestRig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.service.annotation.PutExchange;
 
 import com.foodapp.foodapp_backend.entity.MenuItem;
 import com.foodapp.foodapp_backend.service.MenuItemService;
 
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/items")
 public class MenuItemController {
@@ -25,15 +33,30 @@ public class MenuItemController {
 	private MenuItemService menuItemService;
 	
 //	Adding an MenuItem to the Category ex:Chicken Biryani to Biryani category
-	@PostMapping("/addItem/{categoryId}")
+	@PostMapping(value = "/addItem/{categoryId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public MenuItem addItem(@PathVariable long categoryId, @RequestBody MenuItem menuItem) {
-		return menuItemService.addNewItem(categoryId,menuItem);
-	}
+	public MenuItem addItem(@PathVariable long categoryId,
+			@RequestParam("name") String name,
+			@RequestParam("price") double price,
+			@RequestParam("description") String description,
+			@RequestParam("imageFile") MultipartFile imageFile,
+			@RequestParam("rating") Double rating) {
+
+			MenuItem menuItem = new MenuItem();
+			menuItem.setName(name);
+			menuItem.setPrice(price);
+			menuItem.setDescription(description);
+			menuItem.setRating(rating);
+			
+			log.info("Request came to add a new menu Item {}",name);
+			
+			return menuItemService.addNewItem(categoryId,menuItem,imageFile);
+		}
 	
 //	Fetching all items in Menu
 	@GetMapping("/allItems")
 	public List<MenuItem> getAllItems(){
+		log.info("Request to fetch all menu Items");
 		return menuItemService.Allitems();
 	}
 	
@@ -44,10 +67,16 @@ public class MenuItemController {
 	}
 	
 //	updating menu item
-	@PutExchange("/update/{itemId}")
+	@PutMapping(value = "/update/{itemId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public MenuItem updateMenuItem(@PathVariable long itemId, @RequestBody MenuItem updatedMenu) {
-		return menuItemService.updateItem(itemId,updatedMenu);
+	public MenuItem updateMenuItem(@PathVariable long itemId,
+	        @RequestParam(value = "name", required = false) String name,
+	        @RequestParam(value = "price", required = false) Double price,
+	        @RequestParam(value = "description", required = false) String description,
+	        @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+	        @RequestParam(value = "rating", required = false) Double rating) {
+		
+			return menuItemService.updateItem(itemId, name, price, description, imageFile, rating);
 	}
 	
 //	Deleting Menu Item 
@@ -55,6 +84,13 @@ public class MenuItemController {
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public String deleteMenuItem(@PathVariable long itemId) {
 		return menuItemService.deleteItem(itemId);
+	}
+	
+	
+//	Searching an Item
+	@GetMapping("/search")
+	public List<MenuItem> serachItems(@RequestParam String query){
+		return menuItemService.searchMenuItem(query);
 	}
 
 }

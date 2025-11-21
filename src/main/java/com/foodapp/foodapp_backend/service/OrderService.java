@@ -6,11 +6,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.foodapp.foodapp_backend.dto.OrderUpdateStatusDTO;
 import com.foodapp.foodapp_backend.entity.Cart;
 import com.foodapp.foodapp_backend.entity.CartItem;
+import com.foodapp.foodapp_backend.entity.MenuItem;
 import com.foodapp.foodapp_backend.entity.Order;
 import com.foodapp.foodapp_backend.entity.OrderItem;
 import com.foodapp.foodapp_backend.entity.User;
@@ -35,6 +37,35 @@ public class OrderService {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Value("${app.base-url}")
+    private String BASE_URL;
+	
+	// Utility method to prepend the path (Copied logic from MenuItemService)
+    private MenuItem prependImagePath(MenuItem item) {
+        if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
+            
+            String url = item.getImageUrl();
+            
+            // 1. External URL Check
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                return item;
+            }
+            
+            // 2. Local URL Construction (The FIX)
+            if (!url.startsWith(BASE_URL)) {
+                
+                // If the URL already has /images/ (from previous calls), remove it before adding the full path
+                if (url.startsWith("/images/")) {
+                    url = url.substring("/images/".length());
+                }
+                
+                // Construct the full absolute URL
+                item.setImageUrl(BASE_URL + "/images/" + url);
+            }
+        }
+        return item;
+    }
 	
 	public Order placeOrder(String email) {
 		
@@ -79,10 +110,21 @@ public class OrderService {
 	}
 
 	public List<Order> myOrders(String email) {
-		
-		log.info("Order History fetching for User {}",email);
-		return orderRepository.findByUserEmail(email);
-	}
+			
+			log.info("Order History fetching for User {}",email);
+			
+	        List<Order> orders = orderRepository.findByUserEmail(email);
+	        
+	        // ✅ Logic to update image URLs in all OrderItems of all Orders
+	        orders.forEach(order -> {
+	            order.getItems().forEach(orderItem -> {
+	                // Apply the image path prepending logic to the MenuItem inside each OrderItem
+	                prependImagePath(orderItem.getMenuItem());
+	            });
+	        });
+	
+			return orders;
+		}
 
 	
 	public Order updateStatus(Long orderId, OrderUpdateStatusDTO orderUpdateStatusDTO) {
