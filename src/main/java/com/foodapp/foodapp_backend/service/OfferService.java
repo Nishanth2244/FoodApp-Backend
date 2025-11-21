@@ -121,11 +121,12 @@ public class OfferService {
 		}
 		
 		if(imageFile != null && !imageFile.isEmpty()) {
+			log.info("Image changing if image is null");
 			String imageUrl = saveImage(imageFile);
 			existingOffer.setImageUrl(imageUrl);
 		}
 		
-		log.info("Order updated Succesfully {}",offerId);
+		log.info("Offer updated Succesfully {}",offerId);
 		Offer updatedOffer = offerRepository.save(existingOffer);
         
         // Return with full URL

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import com.foodapp.foodapp_backend.dto.AddressRequestDTO;
+import com.foodapp.foodapp_backend.dto.UpdateAddressRequestDTO;
 import com.foodapp.foodapp_backend.entity.Address;
 import com.foodapp.foodapp_backend.entity.User;
 import com.foodapp.foodapp_backend.repository.AddressRepository;
@@ -84,7 +85,7 @@ public class AddressService {
 	public String delete(String email, Long addressId) {
 		
 		Address address = addressRepository.findById(addressId)
-				.orElseThrow(() -> new RuntimeException("User Not Found with Id: "+email));
+				.orElseThrow(() -> new RuntimeException("Addres is not found with Id: "+addressId));
 		
 		if(!address.getUser().getEmail().equals(email)) {
 			throw new RuntimeException("Not authorized to delete Address");
@@ -93,6 +94,26 @@ public class AddressService {
 		log.info("Address deleted succesfully by "+email+ "Id is "+addressId);
 		addressRepository.deleteById(addressId);
 		return "Address deleted succesfully";
+	}
+
+	public Address updateAddress(Long addressId, UpdateAddressRequestDTO updateAddressRequestDTO, String email) {
+		
+		Address address = addressRepository.findById(addressId)
+				.orElseThrow(() -> new RuntimeException());
+		
+		if(!address.getUser().getEmail().equals(email)) {
+			throw new RuntimeException("Not authorized to Update the details");
+		}
+		
+		address.setRecipentName(updateAddressRequestDTO.getRecipentName());
+		address.setStreet(updateAddressRequestDTO.getStreet());
+		address.setCity(updateAddressRequestDTO.getCity());
+		address.setState(updateAddressRequestDTO.getState());
+		address.setZipcode(updateAddressRequestDTO.getZipcode());
+		address.setCountry(updateAddressRequestDTO.getCountry());
+		
+		log.info("Address Updated Succesfully of User: {}", updateAddressRequestDTO.getRecipentName());
+		return addressRepository.save(address);
 	}
 
 }

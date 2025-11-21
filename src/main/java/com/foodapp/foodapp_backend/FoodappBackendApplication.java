@@ -13,19 +13,19 @@ public class FoodappBackendApplication {
 		SpringApplication.run(FoodappBackendApplication.class, args);
 	}
 	
-	@Bean
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurer() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**")
-					.allowedOriginPatterns("*") // Allow all origins
-					.allowedMethods("*")
-					.allowedHeaders("*")
-					.exposedHeaders("Authorization", "Refresh-Token")
-					.allowCredentials(true);
-			}
-		};
-	}
+//	@Bean
+//	public WebMvcConfigurer corsConfigurer() {
+//		return new WebMvcConfigurer() {
+//			@Override
+//			public void addCorsMappings(CorsRegistry registry) {
+//				registry.addMapping("/**")
+//					.allowedOriginPatterns("*") // Allow all origins
+//					.allowedMethods("*")
+//					.allowedHeaders("*")
+//					.exposedHeaders("Authorization", "Refresh-Token")
+//					.allowCredentials(true);
+//			}
+//		};
+//	}
 
 }

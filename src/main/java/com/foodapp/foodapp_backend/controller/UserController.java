@@ -14,6 +14,9 @@ import com.foodapp.foodapp_backend.dto.UserProfileUpdateRequest;
 import com.foodapp.foodapp_backend.entity.User;
 import com.foodapp.foodapp_backend.service.UserService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -32,6 +35,7 @@ public class UserController {
 	public User updateProfile(@RequestBody UserProfileUpdateRequest userProfileUpdateRequest, Principal principal) {
 		
 		String email = principal.getName();
+		log.info("Request came to change name of {}",email);
 		return userService.updateUserProfile(userProfileUpdateRequest, email);
 	}
 

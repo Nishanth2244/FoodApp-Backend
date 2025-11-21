@@ -19,7 +19,6 @@ import com.foodapp.foodapp_backend.entity.MenuItem;
 import com.foodapp.foodapp_backend.repository.MenuCategoryRepository;
 import com.foodapp.foodapp_backend.repository.MenuItemRepository;
 
-import lombok.experimental.var;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

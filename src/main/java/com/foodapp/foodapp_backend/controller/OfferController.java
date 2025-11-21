@@ -50,7 +50,7 @@ public class OfferController {
 		return offerService.updateOffer(offerId,title, desciption, imageFile, isActive);
 	}
 	
-	@DeleteMapping("/deleteOffer")
+	@DeleteMapping("/deleteOffer/{offerId}")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public String deleteOffer(@PathVariable Long offerId) {
 		

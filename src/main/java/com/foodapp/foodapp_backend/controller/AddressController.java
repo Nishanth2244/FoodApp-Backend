@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.foodapp.foodapp_backend.dto.AddressRequestDTO;
+import com.foodapp.foodapp_backend.dto.UpdateAddressRequestDTO;
 import com.foodapp.foodapp_backend.entity.Address;
 import com.foodapp.foodapp_backend.entity.User;
 import com.foodapp.foodapp_backend.repository.AddressRepository;
@@ -70,6 +71,12 @@ public class AddressController {
 		return addressService.delete(email,addressId);
 	}
 
+	@PutMapping("/updateAddress/{addressId}")
+	public Address updateAddress(@PathVariable Long addressId, @RequestBody UpdateAddressRequestDTO updateAddressRequestDTO, Principal principal) {
+		
+		String email = principal.getName();
+		return addressService.updateAddress(addressId, updateAddressRequestDTO, email);
+	}
 
 
 }
