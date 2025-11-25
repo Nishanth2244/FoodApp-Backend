@@ -1,4 +1,4 @@
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
@@ -17,5 +17,4 @@ COPY src ./src
 RUN ./mvnw -q -DskipTests package
 
 EXPOSE 8080
-CMD ["java","-jar","target/your-app.jar"]
-
+CMD ["java", "-jar", "target/*.jar"]
