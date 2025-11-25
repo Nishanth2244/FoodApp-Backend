@@ -17,5 +17,7 @@ public class MenuCategory {
 	private long id;
 	
 	private String name;
+	
+	private String imageUrl;
 
 }

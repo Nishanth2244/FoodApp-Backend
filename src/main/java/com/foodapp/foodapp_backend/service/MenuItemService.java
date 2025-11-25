@@ -117,7 +117,7 @@ public class MenuItemService {
 	public List<MenuItem> Allitems() {
 		log.info("Fetching all Menu Items");
 		// Map function added to prepend the image path
-		return menuItemRepository.findAll().stream()
+		return menuItemRepository.findByActiveTrue().stream()
                 .map(this::prependImagePath)
                 .collect(Collectors.toList());
 	}
@@ -126,7 +126,7 @@ public class MenuItemService {
 	public List<MenuItem> byCategoryId(long categoryId) {
 		log.info("Fetching item by CategoryId ");
 		// Map function added to prepend the image path
-		return menuItemRepository.findByMenuCategoryId(categoryId).stream()
+		return menuItemRepository.findByMenuCategoryIdAndActiveTrue(categoryId).stream()
                 .map(this::prependImagePath)
                 .collect(Collectors.toList());
 	}
@@ -194,9 +194,14 @@ public class MenuItemService {
 
 
 	public String deleteItem(long itemId) {
-		menuItemRepository.deleteById(itemId);
-		log.info("Deleting Menu Item id: {}",itemId);
-		return "Item deleted Succesfully";
+		
+		MenuItem menuItem = menuItemRepository.findById(itemId)
+				.orElseThrow(() -> new RuntimeException("Item not found with id" + itemId + "to delte"));
+		
+		menuItem.setActive(false);
+		menuItemRepository.save(menuItem);
+		log.info("Item Succesfully Soft Deleted");
+		return "Item succesfully Soft Deleted";
 	}
 
 
@@ -207,6 +212,28 @@ public class MenuItemService {
 		return menuItemRepository.findByNameContainingIgnoreCase(query).stream()
                 .map(this::prependImagePath)
                 .collect(Collectors.toList());
+	}
+
+
+	public List<MenuItem> getArchieved() {
+		log.info("Getting Soft deleted Items");
+		return menuItemRepository.findByActiveFalse().stream()
+                .map(this::prependImagePath)
+                .collect(Collectors.toList());
+	}
+
+
+	public String activate(Long itemId) {
+		
+		MenuItem menuItem = menuItemRepository.findById(itemId)
+				.orElseThrow(() -> new RuntimeException("Item not found with id"));
+		
+		menuItem.setActive(true);
+		menuItemRepository.save(menuItem);
+		log.info("Item Activated Succesfully id {}", itemId);
+		
+		return "Item Activated Succesfully";
+		
 	}
 
 

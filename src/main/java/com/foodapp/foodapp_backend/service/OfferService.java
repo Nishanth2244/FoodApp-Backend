@@ -121,7 +121,7 @@ public class OfferService {
 		}
 		
 		if(imageFile != null && !imageFile.isEmpty()) {
-			log.info("Image changing if image is null");
+			log.info("Image changing if image is not null");
 			String imageUrl = saveImage(imageFile);
 			existingOffer.setImageUrl(imageUrl);
 		}

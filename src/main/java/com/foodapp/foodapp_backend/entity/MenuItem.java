@@ -32,4 +32,6 @@ public class MenuItem {
 	@JoinColumn(name = "category_id")
 	private MenuCategory menuCategory;
 	
+	private boolean active = true;
+	
 }
