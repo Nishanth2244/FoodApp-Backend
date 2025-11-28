@@ -1,6 +1,8 @@
  package com.foodapp.foodapp_backend.service;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import com.foodapp.foodapp_backend.dto.UserProfileUpdateRequest;
 import com.foodapp.foodapp_backend.entity.User;
 import com.foodapp.foodapp_backend.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -22,6 +25,9 @@ public class UserService {
 	
 	@Autowired
 	private LoginRequest loginRequest;
+	
+	@Autowired
+	private PushNotificationService pushNotificationService;
 	
 	public UserProfileDTO getUserProfile(String email) {
 		
@@ -43,9 +49,54 @@ public class UserService {
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("Email is not exist"));
 		
+		String oldName = user.getName();
+		
 		user.setName(userProfileUpdateRequest.getName());
-		log.info("Succesfully Name changed from {} to {}",user.getName(), userProfileUpdateRequest.getName());
+		
+		User updatedUser = userRepository.save(user);
+		
+		log.info("Succesfully Name changed from {} to {}",oldName, updatedUser.getName());
+		
+		if(updatedUser.getExpoPushToken() != null && !updatedUser.getExpoPushToken().isEmpty()) {
+			
+			String title = "Profile Updated";
+			
+			String body = "Profile Updated from "+oldName+" to "+ updatedUser.getName();
+			
+			new Thread(() -> {
+				pushNotificationService.sendNotification(updatedUser.getExpoPushToken(), title, body);
+			}).start();
+			log.info("Profile Update Notification sent");
+		}
+		return updatedUser;
+	}
+
+	public List<UserProfileDTO> getAllUsers(String adminEmail) {
+		
+		List<User> allUsers = userRepository.findAll();
+		
+		return allUsers.stream()
+                .filter(user -> !user.getEmail().equals(adminEmail)) // <-- EE LINE ADMIN NI FILTER CHESTUNDI
+                .map(user -> {
+                    UserProfileDTO profileDTO = new UserProfileDTO();
+                    profileDTO.setId(user.getId());
+                    profileDTO.setName(user.getName());
+                    profileDTO.setEmail(user.getEmail());
+                    profileDTO.setPhone(user.getPhone());
+                    return profileDTO;
+                }).collect(Collectors.toList());
+	}
+
+	@Transactional
+	public User saveExpoToken(String email, String expoToken) {
+		
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User not found with email :"+ email));
+		
+		user.setExpoPushToken(expoToken);
+		log.info("Expo Token succesfully save in the DB of {} {} ", email, expoToken);
 		return userRepository.save(user);
+		
 	}
 
 

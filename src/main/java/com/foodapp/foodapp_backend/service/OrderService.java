@@ -41,6 +41,9 @@ public class OrderService {
 	@Value("${app.base-url}")
     private String BASE_URL;
 	
+	@Autowired
+	private PushNotificationService pushNotificationService;
+	
 	// Utility method to prepend the path (Copied logic from MenuItemService)
     private MenuItem prependImagePath(MenuItem item) {
         if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
@@ -68,6 +71,9 @@ public class OrderService {
     }
 	
 	public Order placeOrder(String email) {
+		
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User not Found with "+ email));
 		
 		Cart cart = cartService.myCartitems(email);
 		
@@ -103,6 +109,18 @@ public class OrderService {
 		
 //		Saving empty cart
 		cartRepository.save(cart);
+		
+		if(user.getExpoPushToken() != null && !user.getExpoPushToken().isEmpty()) {
+			
+			String title ="Order Placed ";
+			
+			String body ="Your Order Placed Succesfully";
+			
+			new Thread(() -> {
+				pushNotificationService.sendNotification(user.getExpoPushToken(), title, body);
+			}).start();
+			log.info("Order Place Update Notification sent");
+		}
 		
 		log.info("Order placed Succesfully by {}",email);
 		

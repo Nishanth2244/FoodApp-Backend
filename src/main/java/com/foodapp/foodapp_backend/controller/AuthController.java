@@ -23,6 +23,7 @@ import com.foodapp.foodapp_backend.entity.Role;
 import com.foodapp.foodapp_backend.entity.User;
 import com.foodapp.foodapp_backend.repository.UserRepository;
 import com.foodapp.foodapp_backend.security.JwtService;
+import com.foodapp.foodapp_backend.service.PushNotificationService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,6 +44,9 @@ public class AuthController {
 
     @Autowired
     private JwtService jwtService;
+    
+    @Autowired
+    private PushNotificationService pushNotificationService;
     
 
     //registration 
@@ -89,7 +93,23 @@ public class AuthController {
             String token = jwtService.createToken(extraClaims, loginRequest.getEmail());  
             
             log.info("User logged in Succesfully: {}",loginRequest.getEmail());
+            
             log.info("Sending JWT token to app {}:",token);
+            
+            User user = userRepository.findByEmail(loginRequest.getEmail())
+            		.orElseThrow(() -> new RuntimeException("User not found with email "+ loginRequest.getEmail()));
+            
+//            if(user.getExpoPushToken() != null || !user.getExpoPushToken().isEmpty()) {
+            	
+            	String title = " 🎀 Login Succesful!";
+            	
+            	String body = "💕 Welcome back! Explore ZOMO ";
+            	
+            	new Thread(() -> {
+    				pushNotificationService.sendNotification(user.getExpoPushToken(), title, body);
+    			}).start();
+            	log.info("Notification sent for Logged in");
+//            }
             
             return ResponseEntity.ok(token);
 
