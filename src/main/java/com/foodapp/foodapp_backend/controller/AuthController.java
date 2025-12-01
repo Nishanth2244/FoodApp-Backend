@@ -86,8 +86,13 @@ public class AuthController {
                     .map(auth -> auth.getAuthority())
                     .collect(Collectors.toList());
 
-            // 2. Create a claims map to hold the roles
-            Map<String, Object> extraClaims = Map.of("roles", authorities);
+            User user = userRepository.findByEmail(loginRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Mutable Claims Map
+            Map<String, Object> extraClaims = new java.util.HashMap<>();
+            extraClaims.put("roles", authorities);
+            extraClaims.put("userId", user.getId());
 
             // 3. Call createToken (instead of generateToken) to include the claims
             String token = jwtService.createToken(extraClaims, loginRequest.getEmail());  
@@ -96,8 +101,6 @@ public class AuthController {
             
             log.info("Sending JWT token to app {}:",token);
             
-            User user = userRepository.findByEmail(loginRequest.getEmail())
-            		.orElseThrow(() -> new RuntimeException("User not found with email "+ loginRequest.getEmail()));
             
 //            if(user.getExpoPushToken() != null || !user.getExpoPushToken().isEmpty()) {
 //            	

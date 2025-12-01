@@ -50,7 +50,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/items/search",
-                                "/offer/getActiveOffers"
+                                "/offer/getActiveOffers",
+                                "/ws/**"
                         		).permitAll() 
                         .anyRequest().authenticated()            
                 )
