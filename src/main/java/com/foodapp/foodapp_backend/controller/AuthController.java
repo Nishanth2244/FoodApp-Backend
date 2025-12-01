@@ -100,15 +100,15 @@ public class AuthController {
             		.orElseThrow(() -> new RuntimeException("User not found with email "+ loginRequest.getEmail()));
             
 //            if(user.getExpoPushToken() != null || !user.getExpoPushToken().isEmpty()) {
-            	
-            	String title = " 🎀 Login Succesful!";
-            	
-            	String body = "💕 Welcome back! Explore ZOMO ";
-            	
-            	new Thread(() -> {
-    				pushNotificationService.sendNotification(user.getExpoPushToken(), title, body);
-    			}).start();
-            	log.info("Notification sent for Logged in");
+//            	
+//            	String title = " 🎀 Login Succesful!";
+//            	
+//            	String body = "💕 Welcome back! Explore ZOMO ";
+//            	
+//            	new Thread(() -> {
+//    				pushNotificationService.sendNotification(user.getExpoPushToken(), title, body);
+//    			}).start();
+//            	log.info("Notification sent for Logged in");
 //            }
             
             return ResponseEntity.ok(token);
@@ -116,5 +116,26 @@ public class AuthController {
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Invalid Credentials");
         }
+    }
+    
+    
+    @PostMapping("/rider-register")
+    public String riderRegister(@RequestBody RegisterRequest registerRequest) {
+    	
+    	if(userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
+    		return "Email is already Exists";
+    	}
+    	
+    	User user = new User();
+    	user.setName(registerRequest.getName());
+    	user.setEmail(registerRequest.getEmail());
+    	user.setPhone(registerRequest.getPhone());
+    	user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+    	
+    	user.setRoles(Set.of(Role.ROLE_RIDER));
+    	
+    	userRepository.save(user);
+    	log.info("New Rider Registered Succesfully {}:",registerRequest.getEmail());
+    	return "New Rider registered Succesfullu"+ registerRequest.getName(); 
     }
 }

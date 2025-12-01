@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.foodapp.foodapp_backend.dto.LoginRequest;
 import com.foodapp.foodapp_backend.dto.UserProfileDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileUpdateRequest;
+import com.foodapp.foodapp_backend.entity.Role;
 import com.foodapp.foodapp_backend.entity.User;
 import com.foodapp.foodapp_backend.repository.UserRepository;
 
@@ -76,7 +77,8 @@ public class UserService {
 		List<User> allUsers = userRepository.findAll();
 		
 		return allUsers.stream()
-                .filter(user -> !user.getEmail().equals(adminEmail)) // <-- EE LINE ADMIN NI FILTER CHESTUNDI
+                .filter(user -> !user.getEmail().equals(adminEmail))
+                .filter(user -> !user.getRoles().contains(Role.ROLE_RIDER))
                 .map(user -> {
                     UserProfileDTO profileDTO = new UserProfileDTO();
                     profileDTO.setId(user.getId());
