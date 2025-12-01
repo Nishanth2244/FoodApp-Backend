@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.foodapp.foodapp_backend.dto.AdminNotificationRequest;
 import com.foodapp.foodapp_backend.dto.ExpoTokenRequestDTO;
+import com.foodapp.foodapp_backend.dto.RiderStatusUpdateDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileUpdateRequest;
 import com.foodapp.foodapp_backend.entity.User;
@@ -82,5 +83,16 @@ public class UserController {
 		}).start();
 		
 		return "Notification sent to all Users";
+	}
+	
+	
+	@PostMapping("/status-update")
+	@PreAuthorize("hasRole('ROLE_RIDER')")
+	public User statusUpdate(@RequestBody RiderStatusUpdateDTO riderStatusUpdateDTO, Principal principal) {
+		
+		String email = principal.getName();
+		String status = riderStatusUpdateDTO.getStatus();
+		
+		return userService.updateRiderStatus(email,status);
 	}
 }

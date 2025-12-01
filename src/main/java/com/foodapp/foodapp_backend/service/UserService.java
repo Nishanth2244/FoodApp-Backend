@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.foodapp.foodapp_backend.dto.LoginRequest;
+import com.foodapp.foodapp_backend.dto.RiderStatusUpdateDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileUpdateRequest;
 import com.foodapp.foodapp_backend.entity.Role;
@@ -99,6 +100,16 @@ public class UserService {
 		log.info("Expo Token succesfully save in the DB of {} {} ", email, expoToken);
 		return userRepository.save(user);
 		
+	}
+
+	public User updateRiderStatus(String email, String status) {
+		
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User not found with: "+ email));
+		
+		user.setRiderStatus(status);
+	
+		return userRepository.save(user);
 	}
 
 

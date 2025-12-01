@@ -34,4 +34,6 @@ public class User {
     private Set<Address> addresses = new HashSet<>();
     
     private String expoPushToken;
+    
+    private String riderStatus;
 }
