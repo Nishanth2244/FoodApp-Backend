@@ -60,7 +60,7 @@ public class OrderController {
 	@GetMapping("allOrders")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public List<Order> getAllOrder() {
-		return orderRepository.findAll();
+		return orderService.allOrders();
 	}
 	
 	

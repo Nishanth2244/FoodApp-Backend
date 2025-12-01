@@ -92,7 +92,15 @@ public class UserController {
 		
 		String email = principal.getName();
 		String status = riderStatusUpdateDTO.getStatus();
-		
 		return userService.updateRiderStatus(email,status);
+	}
+	
+	
+	@GetMapping("RiderStatus")
+	@PreAuthorize("hasRole('ROLE_RIDER')")
+	public RiderStatusUpdateDTO getStatus(Principal principal) {
+		
+		String email = principal.getName();
+		return userService.getRiderStatus(email);
 	}
 }

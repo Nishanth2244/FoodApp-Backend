@@ -108,8 +108,20 @@ public class UserService {
 				.orElseThrow(() -> new RuntimeException("User not found with: "+ email));
 		
 		user.setRiderStatus(status);
-	
+		log.info("{} rider is going to {}", email, status);
 		return userRepository.save(user);
+	}
+
+	public RiderStatusUpdateDTO getRiderStatus(String email) {
+		
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User Not found with name: "+ email));
+		
+		RiderStatusUpdateDTO riderStatusUpdateDTO = new RiderStatusUpdateDTO();
+		riderStatusUpdateDTO.setStatus(user.getRiderStatus());
+		log.info("getting {} rider status {}", email, user.getRiderStatus());
+
+		return riderStatusUpdateDTO;
 	}
 
 

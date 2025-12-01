@@ -183,5 +183,18 @@ public class OrderService {
 		
 		
 	}
+
+	public List<Order> allOrders() {
+		
+		List<Order> orders = orderRepository.findAll();
+		
+        orders.forEach(order -> {
+            order.getItems().forEach(orderItem -> {
+                // Apply the image path prepending logic to the MenuItem inside each OrderItem
+                prependImagePath(orderItem.getMenuItem());
+            });
+        });
+		return orders;
+	}
 	
 }
