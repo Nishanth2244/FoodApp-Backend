@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.foodapp.foodapp_backend.entity.Wishlist;
 import com.foodapp.foodapp_backend.service.WishListService;
 
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/wishlist")
 public class WishlistController {
@@ -23,6 +27,7 @@ public class WishlistController {
 	@PostMapping("/addItem/{menuItemId}")
 	public Wishlist addItemWishlist(@PathVariable Long menuItemId, Principal principal) {
 		
+		log.info("REQUEST to add item to wishlist");
 		String email = principal.getName();
 		return wishListService.addItemToWishlist(menuItemId, email);
 	}
@@ -31,6 +36,7 @@ public class WishlistController {
 	@GetMapping("/getWishlist")
 	public Wishlist getWishlist(Principal principal) {
 		
+		log.info("REQUEST to fetch wish list");
 		String email = principal.getName();
 		return wishListService.getWishlist(email);
 	}

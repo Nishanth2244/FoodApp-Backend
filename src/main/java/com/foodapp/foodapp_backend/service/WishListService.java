@@ -88,11 +88,9 @@ public class WishListService {
 		Optional<WishlistItem> existingItem = wishListItemRepository.findByWishlistAndMenuItem(wishlist, menuItem);
 		
 		if(existingItem.isPresent()) {
-			
 			if(user.getExpoPushToken() != null && !user.getExpoPushToken().isEmpty()) {
 				
 				String title ="Wishlist";
-				
 				String body = existingItem.get().getMenuItem().getName() + " Item already in the wishlist" ;
 				
 				new Thread(() -> {
@@ -138,6 +136,7 @@ public class WishListService {
             prependImagePath(wishlistItem.getMenuItem());
         });
 		
+        log.info("fetching wishlist for {}", email);
 		return wishlist;
 		
 	}
