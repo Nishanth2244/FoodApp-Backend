@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.foodapp.foodapp_backend.dto.LoginRequest;
@@ -13,6 +14,7 @@ import com.foodapp.foodapp_backend.dto.UserProfileDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileUpdateRequest;
 import com.foodapp.foodapp_backend.entity.Role;
 import com.foodapp.foodapp_backend.entity.User;
+import com.foodapp.foodapp_backend.handler.RiderWebSocketHandler;
 import com.foodapp.foodapp_backend.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -30,6 +32,10 @@ public class UserService {
 	
 	@Autowired
 	private PushNotificationService pushNotificationService;
+	
+    @Autowired
+    @Lazy
+    private RiderWebSocketHandler riderWebSocketHandler;
 	
 	public UserProfileDTO getUserProfile(String email) {
 		
@@ -103,14 +109,27 @@ public class UserService {
 	}
 
 	public User updateRiderStatus(String email, String status) {
-		
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User not found with: "+ email));
-		
+		// 1. Update Database
 		user.setRiderStatus(status);
+		User savedUser = userRepository.save(user);
 		log.info("{} rider is going to {}", email, status);
-		return userRepository.save(user);
+		
+		// 2. ✅ Get Real-time Count (Can be from DB or Memory)
+        try {
+            // Here we can get accurate count from DB or Handler memory
+            int activeCount = riderWebSocketHandler.getActiveRiderCount(); 
+            // 3. ✅ Broadcast to Admin via WebSocket (The "Topic")
+            String jsonMessage = "{\"type\": \"RIDER_COUNT_UPDATE\", \"count\": " + activeCount + "}";
+            riderWebSocketHandler.broadcastToAdmins(jsonMessage);
+        } catch (Exception e) {
+            log.error("Failed to broadcast rider status update via WebSocket", e);
+        }
+		return savedUser;
 	}
+	
+	
 
 	public RiderStatusUpdateDTO getRiderStatus(String email) {
 		

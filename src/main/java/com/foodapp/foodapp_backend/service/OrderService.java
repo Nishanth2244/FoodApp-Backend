@@ -16,6 +16,7 @@ import com.foodapp.foodapp_backend.entity.MenuItem;
 import com.foodapp.foodapp_backend.entity.Order;
 import com.foodapp.foodapp_backend.entity.OrderItem;
 import com.foodapp.foodapp_backend.entity.User;
+import com.foodapp.foodapp_backend.handler.RiderWebSocketHandler;
 import com.foodapp.foodapp_backend.repository.CartRepository;
 import com.foodapp.foodapp_backend.repository.OrderRepository;
 import com.foodapp.foodapp_backend.repository.UserRepository;
@@ -43,6 +44,9 @@ public class OrderService {
 	
 	@Autowired
 	private PushNotificationService pushNotificationService;
+	
+	@Autowired
+	private RiderWebSocketHandler riderWebSocketHandler;
 	
 	// Utility method to prepend the path (Copied logic from MenuItemService)
     private MenuItem prependImagePath(MenuItem item) {
@@ -122,6 +126,9 @@ public class OrderService {
 			log.info("Order Place Update Notification sent");
 		}
 		
+        String adminMsg = "{\"type\": \"NEW_ORDER_ALERT\", \"orderId\": " + savedOrder.getId() + ", \"amount\": " + savedOrder.getTotalAmount() + "}";
+        riderWebSocketHandler.broadcastToAdmins(adminMsg);
+		
 		log.info("Order placed Succesfully by {}",email);
 		
 		return savedOrder;
@@ -196,5 +203,35 @@ public class OrderService {
         });
 		return orders;
 	}
+	
+	public Order assignRider(Long orderId, Long riderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        User rider = userRepository.findById(riderId)
+                .orElseThrow(() -> new RuntimeException("Rider not found"));
+        // Update DB
+        order.setRider(rider);
+        order.setOrderStatus("ASSIGNED"); 
+        Order updatedOrder = orderRepository.save(order);
+        log.info("Order {} assigned to Rider {}", orderId, rider.getEmail());
+        // Update Frontend Images for response
+        updatedOrder.getItems().forEach(i -> prependImagePath(i.getMenuItem()));
+ 
+        // ✅ Notify Specific Rider
+        String location = "Customer Location";
+        if(!order.getUser().getAddresses().isEmpty()){
+             location = order.getUser().getAddresses().iterator().next().getCity();
+        }
+ 
+        String riderMsg = "{"
+                + "\"type\": \"NEW_ASSIGNED_ORDER\","
+                + "\"orderId\": " + order.getId() + ","
+                + "\"pickup\": \"Restaurant\","
+                + "\"dropoff\": \"" + location + "\"," 
+                + "\"amount\": " + order.getTotalAmount()
+                + "}";
+        riderWebSocketHandler.sendToRider(rider.getEmail(), riderMsg);
+        return updatedOrder;
+    }
 	
 }

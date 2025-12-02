@@ -71,4 +71,11 @@ public class OrderController {
 		return orderService.cancelOrder(orderId,email);
 		
 	}
+	
+    @PutMapping("/assign/{orderId}/{riderId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Order assignOrder(@PathVariable Long orderId, @PathVariable Long riderId) {
+        log.info("Request to assign Order {} to Rider {}", orderId, riderId);
+        return orderService.assignRider(orderId, riderId);
+    }
 }
