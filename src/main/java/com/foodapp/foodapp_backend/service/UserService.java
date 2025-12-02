@@ -109,8 +109,10 @@ public class UserService {
 	}
 
 	public User updateRiderStatus(String email, String status) {
+		
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User not found with: "+ email));
+		
 		// 1. Update Database
 		user.setRiderStatus(status);
 		User savedUser = userRepository.save(user);
@@ -121,8 +123,11 @@ public class UserService {
             // Here we can get accurate count from DB or Handler memory
             int activeCount = riderWebSocketHandler.getActiveRiderCount(); 
             // 3. ✅ Broadcast to Admin via WebSocket (The "Topic")
+            
             String jsonMessage = "{\"type\": \"RIDER_COUNT_UPDATE\", \"count\": " + activeCount + "}";
             riderWebSocketHandler.broadcastToAdmins(jsonMessage);
+            log.info("broadcasting online riders count via websocket {}", activeCount);
+            
         } catch (Exception e) {
             log.error("Failed to broadcast rider status update via WebSocket", e);
         }

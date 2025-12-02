@@ -49,13 +49,13 @@ public class OrderController {
 	
 	
 	@PutMapping("updateStatus/{orderId}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasRole('ROLE_ADMIN', 'ROLE_RIDER)")
 	public Order updateOrderStatus(@PathVariable Long orderId, @RequestBody OrderUpdateStatusDTO orderUpdateStatusDTO) {
 		
 		log.info("ADMIN: updting order staus for order: {}",orderId);
 		return orderService.updateStatus(orderId,orderUpdateStatusDTO);
 	}
-	
+
 	
 	@GetMapping("allOrders")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -77,5 +77,12 @@ public class OrderController {
     public Order assignOrder(@PathVariable Long orderId, @PathVariable Long riderId) {
         log.info("Request to assign Order {} to Rider {}", orderId, riderId);
         return orderService.assignRider(orderId, riderId);
+    }
+    
+    
+    @GetMapping("/{orderId}")
+    public Order getOrderById(@PathVariable Long orderId) {
+    	
+    	return orderService.getOrder(orderId);
     }
 }

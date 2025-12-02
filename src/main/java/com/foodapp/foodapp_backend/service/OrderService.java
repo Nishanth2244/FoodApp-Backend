@@ -165,7 +165,7 @@ public class OrderService {
 		return orderRepository.save(oldOrder);
 		
 	}
-
+	
 	public Order cancelOrder(Long orderId, String email) {
 		
 		User user = userRepository.findByEmail(email)
@@ -205,15 +205,19 @@ public class OrderService {
 	}
 	
 	public Order assignRider(Long orderId, Long riderId) {
+		
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+        
         User rider = userRepository.findById(riderId)
                 .orElseThrow(() -> new RuntimeException("Rider not found"));
+        
         // Update DB
         order.setRider(rider);
         order.setOrderStatus("ASSIGNED"); 
         Order updatedOrder = orderRepository.save(order);
         log.info("Order {} assigned to Rider {}", orderId, rider.getEmail());
+        
         // Update Frontend Images for response
         updatedOrder.getItems().forEach(i -> prependImagePath(i.getMenuItem()));
  
@@ -233,5 +237,20 @@ public class OrderService {
         riderWebSocketHandler.sendToRider(rider.getEmail(), riderMsg);
         return updatedOrder;
     }
+	
+
+	public Order getOrder(Long orderId) {
+		
+		Order order = orderRepository.findById(orderId)
+				.orElseThrow(() -> new RuntimeException("Order Not found with id: "+ orderId));
+		
+        // Fix image URLs for all items in this order
+        if(order.getItems() != null) {
+            order.getItems().forEach(orderItem -> prependImagePath(orderItem.getMenuItem()));
+        }
+        log.info("getting order details of {}", orderId);
+        return order;
+		
+	}
 	
 }

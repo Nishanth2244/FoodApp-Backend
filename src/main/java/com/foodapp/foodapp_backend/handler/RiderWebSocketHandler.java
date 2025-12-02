@@ -11,17 +11,22 @@ import com.foodapp.foodapp_backend.service.UserService;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+
 @Component
 public class RiderWebSocketHandler extends TextWebSocketHandler {
     // Maps
     private static final Map<String, WebSocketSession> activeRiders = new ConcurrentHashMap<>();
     private static final Map<String, WebSocketSession> adminSessions = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    
     @Autowired
     @Lazy
     private UserService userService;
+    
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    	
         String username = (String) session.getAttributes().get("username");
         // Separate Admins and Riders
         if (username != null) {
@@ -34,6 +39,8 @@ public class RiderWebSocketHandler extends TextWebSocketHandler {
              }
         }
     }
+    
+    
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
@@ -56,6 +63,8 @@ public class RiderWebSocketHandler extends TextWebSocketHandler {
             System.err.println("Error parsing WS message: " + e.getMessage());
         }
     }
+    
+     	
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         String username = (String) session.getAttributes().get("username");

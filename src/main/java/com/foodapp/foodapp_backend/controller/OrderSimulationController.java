@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.foodapp.foodapp_backend.handler.RiderWebSocketHandler;
  
 @RestController
-
 @RequestMapping("/test")
-
 public class OrderSimulationController {
  
     @Autowired
@@ -32,10 +30,7 @@ public class OrderSimulationController {
                 + "\"amount\": " + amount
                 + "}";
         webSocketHandler.broadcastMessage(orderPayload);
-
         return "Order Notification Sent to Riders!";
-
     }
-
 }
  

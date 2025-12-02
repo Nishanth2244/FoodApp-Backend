@@ -32,7 +32,7 @@ public class UserWebSocketHandler extends TextWebSocketHandler {
         }
     }
  
-    // Specific User కి మెసేజ్ పంపడానికి (Order Updates కోసం)
+
     public void sendNotificationToUser(String email, String message) {
         WebSocketSession session = userSessions.get(email);
         if (session != null && session.isOpen()) {
