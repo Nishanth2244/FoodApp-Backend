@@ -6,17 +6,23 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.foodapp.foodapp_backend.dto.AdminNotificationRequest;
 import com.foodapp.foodapp_backend.dto.ExpoTokenRequestDTO;
+import com.foodapp.foodapp_backend.dto.RiderStatusDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileUpdateRequest;
+import com.foodapp.foodapp_backend.entity.Role;
 import com.foodapp.foodapp_backend.entity.User;
+import com.foodapp.foodapp_backend.repository.UserRepository;
+import com.foodapp.foodapp_backend.service.CacheInspectionService;
 import com.foodapp.foodapp_backend.service.PushNotificationService;
 import com.foodapp.foodapp_backend.service.UserService;
 
@@ -32,6 +38,12 @@ public class UserController {
 	
 	@Autowired
 	private PushNotificationService pushNotificationService;
+	
+	@Autowired
+	private UserRepository userRepository;
+	
+	@Autowired
+	CacheInspectionService cacheInspectionService;
 	
 	@GetMapping("/myProfile")
 	public UserProfileDTO getProfile(Principal principal) {
@@ -83,4 +95,33 @@ public class UserController {
 		
 		return "Notification sent to all Users";
 	}
+	
+	
+	@PostMapping("/update-status")
+	@PreAuthorize("hasRole('ROLE_RIDER')")
+	public User updateStatus(@RequestParam String status, Principal principal) {
+		
+		String email = principal.getName();
+		return userService.updateStatus(email, status);
+	}
+	
+	@GetMapping("/Rider-status")
+	@PreAuthorize("hasRole('ROLE_RIDER')")
+	public RiderStatusDTO getStatus(Principal principal) {
+		
+		String email = principal.getName();
+		return userService.getStatus(email);
+	}
+	
+	@GetMapping("/riders/online")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public List<User> getOnlineRiders() {
+	    return userRepository.findByRolesContainsAndRiderStatusIgnoreCase(Role.ROLE_RIDER, "ONLINE");
+	}
+	
+	@GetMapping("/Cache/{name}")
+	public void getCache(@PathVariable String name) {
+		cacheInspectionService.getContent(name);
+	}
+
 }

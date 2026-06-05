@@ -1,6 +1,5 @@
 package com.foodapp.foodapp_backend.dto;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data

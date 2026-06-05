@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.foodapp.foodapp_backend.dto.OrderUpdateStatusDTO;
+import com.foodapp.foodapp_backend.dto.RiderAssignmentDTO;
 import com.foodapp.foodapp_backend.entity.Order;
 import com.foodapp.foodapp_backend.repository.OrderRepository;
 import com.foodapp.foodapp_backend.service.OrderService;
@@ -49,7 +50,7 @@ public class OrderController {
 	
 	
 	@PutMapping("updateStatus/{orderId}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_RIDER')")
 	public Order updateOrderStatus(@PathVariable Long orderId, @RequestBody OrderUpdateStatusDTO orderUpdateStatusDTO) {
 		
 		log.info("ADMIN: updting order staus for order: {}",orderId);
@@ -60,7 +61,7 @@ public class OrderController {
 	@GetMapping("allOrders")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public List<Order> getAllOrder() {
-		return orderRepository.findAll();
+		return orderService.getAll();
 	}
 	
 	
@@ -70,5 +71,30 @@ public class OrderController {
 		String email = principal.getName();
 		return orderService.cancelOrder(orderId,email);
 		
+	}
+	
+	
+	@PutMapping("/assignRider/{orderId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Order assignRiderToOrder(@PathVariable Long orderId, @RequestBody RiderAssignmentDTO riderAssignmentDTO) {
+        log.info("ADMIN: Assigning Order {} to Rider {}", orderId, riderAssignmentDTO.getRiderId());
+        return orderService.assignRider(orderId, riderAssignmentDTO.getRiderId());
+    }
+	
+	
+	@GetMapping("/rider/assignedOrders")
+	@PreAuthorize("hasRole('ROLE_RIDER')")
+    public List<Order> getRiderOrders(Principal principal) {
+        String email = principal.getName();
+        log.info("RIDER: Fetching assigned orders for {}", email);
+        return orderService.getRiderAssignedOrders(email);
+    }
+	
+	
+	@GetMapping("/getOrder/{orderId}")
+	public Order getOrderById(@PathVariable Long orderId, Principal principal) {
+		
+		String email = principal.getName();
+		return orderService.getOrderDetails(orderId, email);
 	}
 }

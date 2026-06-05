@@ -208,7 +208,6 @@ public class MenuItemService {
 	public List<MenuItem> searchMenuItem(String query) {
 		
         log.info("Fetching item by search query: {}", query);
-		// ✅ FIX: Calling the new repository method for partial and case-insensitive search
 		return menuItemRepository.findByNameContainingIgnoreCase(query).stream()
                 .map(this::prependImagePath)
                 .collect(Collectors.toList());

@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.foodapp.foodapp_backend.dto.LoginRequest;
+import com.foodapp.foodapp_backend.dto.RiderStatusDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileDTO;
 import com.foodapp.foodapp_backend.dto.UserProfileUpdateRequest;
 import com.foodapp.foodapp_backend.entity.User;
@@ -29,6 +32,7 @@ public class UserService {
 	@Autowired
 	private PushNotificationService pushNotificationService;
 	
+	@Cacheable(value = "UserProfile", key = "#email")
 	public UserProfileDTO getUserProfile(String email) {
 		
 		User user = userRepository.findByEmail(email)
@@ -38,12 +42,13 @@ public class UserService {
 		userProfileDTO.setId(user.getId());
 		userProfileDTO.setEmail(email);
 		userProfileDTO.setName(user.getName());
-		userProfileDTO.setPhone(user.getPhone());
+		userProfileDTO.setPhone(user.getPhone());		
 		log.info("Getting the User Profile of {} ",user.getName());
 		
 		return userProfileDTO;
 	}
 
+	@CacheEvict(value = "UserProfile", key = "#email")
 	public User updateUserProfile(UserProfileUpdateRequest userProfileUpdateRequest, String email) {
 		
 		User user = userRepository.findByEmail(email)
@@ -97,6 +102,29 @@ public class UserService {
 		log.info("Expo Token succesfully save in the DB of {} {} ", email, expoToken);
 		return userRepository.save(user);
 		
+	}
+
+	public User updateStatus(String email, String status) {
+		
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User not found with Id: "+email));
+		
+		user.setRiderStatus(status);
+		
+		log.info("Rider status updated to : {}", status);
+		return userRepository.save(user);
+	}
+
+	public RiderStatusDTO getStatus(String email) {
+		
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User Not found with email: "+ email));
+		
+		RiderStatusDTO riderStatusDTO = new RiderStatusDTO();
+		riderStatusDTO.setRiderStatus(user.getRiderStatus());
+		           
+		log.info("Fetching Rider status : {}", user.getRiderStatus());
+		return riderStatusDTO;
 	}
 
 

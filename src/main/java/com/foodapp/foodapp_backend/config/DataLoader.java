@@ -3,10 +3,8 @@ package com.foodapp.foodapp_backend.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-// RoleRepository import teeseyandi
 import com.foodapp.foodapp_backend.entity.Role; // Enum ni import cheskondi
 import com.foodapp.foodapp_backend.entity.User;
-// RoleRepository import teeseyandi
 import com.foodapp.foodapp_backend.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;

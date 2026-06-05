@@ -184,4 +184,86 @@ public class OrderService {
 		
 	}
 	
+	
+public Order assignRider(Long orderId, Long riderId) {
+        
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found with Id: " + orderId));
+
+        User rider = userRepository.findById(riderId)
+            .orElseThrow(() -> new RuntimeException("Rider not found with Id: " + riderId));
+
+        
+        if (!rider.getRoles().contains(com.foodapp.foodapp_backend.entity.Role.ROLE_RIDER)) {
+            throw new RuntimeException("User ID " + riderId + " is not a Rider.");
+        }
+        
+       
+        if (order.getOrderStatus().equals("PENDING")) {
+            order.setOrderStatus("IN DELIVERY");
+        }
+        
+        order.setRider(rider); 
+        
+        Order assignedOrder = orderRepository.save(order);
+        
+        
+        if(rider.getExpoPushToken() != null && !rider.getExpoPushToken().isEmpty()) {
+            String title = "🥳 New Order Assigned!";
+            String body = "Order #" + assignedOrder.getId() + " is assigned to you. Status: IN DELIVERY.";
+            
+            new Thread(() -> {
+                pushNotificationService.sendNotification(rider.getExpoPushToken(), title, body);
+            }).start();
+            log.info("Notification sent to Rider {} for Order #{}", rider.getEmail(), assignedOrder.getId());
+        }
+
+        log.info("Order {} assigned to Rider {}", orderId, rider.getEmail());
+        
+        return assignedOrder;
+    }
+
+	
+	public List<Order> getRiderAssignedOrders(String riderEmail) {
+		
+	    User rider = userRepository.findByEmail(riderEmail)
+	        .orElseThrow(() -> new RuntimeException("Rider not found with email: " + riderEmail));
+	    
+	    List<Order> orders = orderRepository.findByRider(rider);
+	    
+	    orders.forEach(order -> {
+	        order.getItems().forEach(orderItem -> {
+	            prependImagePath(orderItem.getMenuItem());
+	        });
+	    });
+	    
+	    log.info("Fetching {} assigned orders for Rider {}", orders.size(), riderEmail);
+	    return orders;
+}
+
+	public Order getOrderDetails(Long orderId, String email) {
+			
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("Rider not found with id: "+ email));
+		
+		Order order = orderRepository.findById(orderId)
+				.orElseThrow(() -> new RuntimeException("Order not found with Id: "+ orderId));
+		
+		log.info("getting order by Id: ", orderId);
+		return order;
+	}
+
+	public List<Order> getAll() {
+		
+		List<Order> orders = orderRepository.findAll();
+		
+		orders.forEach(order -> {
+			order.getItems().forEach(orderItem ->{
+				prependImagePath(orderItem.getMenuItem());
+			});
+		});
+		
+		return orders;
+	}
+	
 }

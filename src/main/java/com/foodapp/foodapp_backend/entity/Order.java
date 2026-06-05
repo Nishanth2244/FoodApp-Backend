@@ -51,6 +51,10 @@ public class Order {
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime orderDate;
 	
+	@ManyToOne
+	@JoinColumn(name = "rider_id")
+	private User rider;
+	
 	@PrePersist
 	protected void onCreate() {
 		this.orderStatus = "PENDING";
